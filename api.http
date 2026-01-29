@@ -1,0 +1,17 @@
+### 1. Crear un Pedido Nuevo
+POST http://localhost:3000/api/pedidos
+Content-Type: application/json
+
+{
+  "usuarioId": 1,
+  "items": [
+    {
+      "productoId": 1,
+      "cantidad": 2,
+      "precio": 3.50
+    }
+  ]
+}
+
+### 2. Ver todos los pedidos (Para comprobar que se guardó)
+GET http://localhost:3000/api/pedidos

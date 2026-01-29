@@ -1,0 +1,20 @@
+import express from 'express';
+import cors from 'cors';
+import productoRoutes from './routes/product.routes';
+import pedidoRoutes from './routes/pedido.routes';
+
+const app = express();
+
+// Middlewares (Configuraciones)
+app.use(express.json());  // Permite recibir datos JSON en POST
+
+// Rutas
+app.use('/api/productos', productoRoutes);
+app.use('/api/pedidos', pedidoRoutes); 
+
+// Ruta de prueba general
+app.get('/', (req, res) => {
+  res.send('☕ Backend Cafetería Funcionando ☕');
+});
+
+export default app;
