@@ -27,7 +27,6 @@ export const createProducto = async (req: Request, res: Response) => {
       data: {
         nombre,
         precio,
-        stock,
         categoriaId: Number(categoriaId) // Aseguramos que sea número
       }
     });
@@ -35,5 +34,20 @@ export const createProducto = async (req: Request, res: Response) => {
     res.status(201).json(nuevoProducto);
   } catch (error) {
     res.status(400).json({ error: 'Error al crear producto' });
+  }
+};
+
+export const deleteProducto = async (req: Request, res: Response) => {  
+  try {
+    const { id } = req.params;
+    const productoEliminado = await prisma.producto.delete({
+      where: {
+        id: Number(id)
+      }
+    });
+    res.json(productoEliminado);
+  } catch (error: any) {
+    console.error(error);
+    res.status(400).json({ error: 'No se pudo eliminar el producto', details: error.message });
   }
 };

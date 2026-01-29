@@ -5,24 +5,29 @@ export const createPedido = async (req: Request, res: Response) => {
   try {
     const { usuarioId, items } = req.body; 
     // items espera ser un array así: [{ productoId: 1, cantidad: 2, precio: 4.50 }]
+    
+    if (!items || !Array.isArray(items)) {
+      res.status(400).json({ error: 'El campo "items" es requerido y debe ser un array' });
+      return;
+    }
 
     // 1. Calculamos el total sumando los subtotales
     const totalCalculado = items.reduce((acc: number, item: any) => {
-      return acc + (item.precio * item.cantidad);
+      return acc + (Number(item.precio) * Number(item.cantidad));
     }, 0);
 
     // 2. Insertamos TODO en una sola transacción (Cabecera + Detalles)
     const nuevoPedido = await prisma.pedido.create({
       data: {
-        usuarioId: usuarioId,
+        usuarioId: Number(usuarioId), // Aseguramos que sea número
         total: totalCalculado,
         estado: 'PENDIENTE',
         // ¡Aquí está la magia de Prisma! Creamos los renglones al mismo tiempo
         detalles: {
           create: items.map((item: any) => ({
-            productoId: item.productoId,
-            cantidad: item.cantidad,
-            precioUnitario: item.precio
+            productoId: Number(item.productoId),
+            cantidad: Number(item.cantidad),
+            precioUnitario: Number(item.precio)
           }))
         }
       },
@@ -32,9 +37,10 @@ export const createPedido = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(nuevoPedido);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    res.status(400).json({ error: 'No se pudo crear el pedido' });
+    // Enviamos el mensaje de error real para saber qué falló (ej: Foreign key constraint failed)
+    res.status(400).json({ error: 'No se pudo crear el pedido', details: error.message });
   }
 };
 
@@ -53,8 +59,9 @@ export const getPedidos = async (req: Request, res: Response) => {
       }
     });
     res.json(pedidos);
-  } catch (error) {
-    res.status(500).json({ error: 'Error al obtener pedidos' });
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al obtener pedidos', details: error.message });
   }
 };
 

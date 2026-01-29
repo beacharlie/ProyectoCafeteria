@@ -6,6 +6,7 @@ import pedidoRoutes from './routes/pedido.routes';
 const app = express();
 
 // Middlewares (Configuraciones)
+app.use(cors());
 app.use(express.json());  // Permite recibir datos JSON en POST
 
 // Rutas

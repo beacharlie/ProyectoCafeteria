@@ -6,6 +6,7 @@ const router = Router();
 router.post('/', createPedido); // Crear pedido
 router.get('/', getPedidos);    // Ver lista de pedidos
 
-router.patch('/:id', updateEstadoPedido);
+router.patch('/:id', updateEstadoPedido); // Actualizar estado de pedido
+
 
 export default router;

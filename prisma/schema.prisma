@@ -13,18 +13,15 @@ model Usuario {
   email          String   @unique(map: "idx_email")
   password       String   @db.VarChar(255)
   rol            String   @default("CLIENTE") @db.VarChar(50)
-  fechaRegistro  DateTime @default(now()) @map("fecha_registro")
   pedidos        Pedido[]
 
   @@map("usuarios")
 }
 
 model Categoria {
-  id          Int        @id @default(autoincrement())
-  nombre      String     @db.VarChar(255)
-  descripcion String?    @db.Text
-  activa      Boolean    @default(true)
-  productos   Producto[]
+  id        Int        @id @default(autoincrement())
+  nombre    String     @db.VarChar(255)
+  productos Producto[]
 
   @@map("categorias")
 }
@@ -33,9 +30,8 @@ model Producto {
   id             Int             @id @default(autoincrement())
   categoriaId    Int             @map("categoria_id")
   nombre         String          @db.VarChar(255)
-  descripcion    String?         @db.Text
   precio         Decimal         @db.Decimal(10, 2)
-  stock          Int
+  alergenos      String?         @db.VarChar(100)
   disponible     Boolean         @default(true)
   fechaCreacion  DateTime        @default(now()) @map("fecha_creacion")
   detallePedidos DetallePedido[]

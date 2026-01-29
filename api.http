@@ -6,7 +6,7 @@ Content-Type: application/json
   "usuarioId": 1,
   "items": [
     {
-      "productoId": 1,
+      "productoId": 3,
       "cantidad": 2,
       "precio": 3.50
     }
@@ -15,3 +15,7 @@ Content-Type: application/json
 
 ### 2. Ver todos los pedidos (Para comprobar que se guardó)
 GET http://localhost:3000/api/pedidos
+
+
+### 3. Elimina el producto con id especifico
+DELETE http://localhost:3000/api/productos/46
