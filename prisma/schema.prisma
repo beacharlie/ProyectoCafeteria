@@ -13,6 +13,7 @@ model Usuario {
   email          String   @unique(map: "idx_email")
   password       String   @db.VarChar(255)
   rol            String   @default("CLIENTE") @db.VarChar(50)
+  codigoTutor    String?  @map("codigo_tutor") @db.VarChar(50)
   pedidos        Pedido[]
 
   @@map("usuarios")
@@ -29,15 +30,15 @@ model Categoria {
 model Producto {
   id             Int             @id @default(autoincrement())
   categoriaId    Int             @map("categoria_id")
-  nombre         String          @db.VarChar(255)
-  precio         Decimal         @db.Decimal(10, 2)
-  alergenos      String?         @db.VarChar(100)
-  disponible     Boolean         @default(true)
-  fechaCreacion  DateTime        @default(now()) @map("fecha_creacion")
+  nombre         String          @db.VarChar(100)
+  precio         Decimal         @db.Decimal(5, 2)
+  alergenos      String?         @db.VarChar(255)
+  disponible     Boolean?        @default(true)
+  fechaCreacion  DateTime?       @default(now()) @map("fecha_creacion") @db.DateTime(0)
   detallePedidos DetallePedido[]
-  categoria      Categoria       @relation(fields: [categoriaId], references: [id], map: "fk_productos_categoria")
+  categoria      Categoria       @relation(fields: [categoriaId], references: [id], onDelete: Cascade, map: "categoria_fk")
 
-  @@index([categoriaId], map: "fk_productos_categoria")
+  @@index([categoriaId], map: "categoria_fk")
   @@map("productos")
 }
 
@@ -45,7 +46,6 @@ model Pedido {
   id                 Int             @id @default(autoincrement())
   usuarioId          Int             @map("usuario_id")
   total              Decimal         @db.Decimal(10, 2)
-  estado             String          @default("PENDIENTE") @db.VarChar(50)
   fechaPedido        DateTime        @default(now()) @map("fecha_pedido")
   fechaActualizacion DateTime        @default(now()) @updatedAt @map("fecha_actualizacion")
   detalles           DetallePedido[]

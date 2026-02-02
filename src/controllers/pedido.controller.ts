@@ -4,31 +4,49 @@ import { prisma } from '../lib/prisma';
 export const createPedido = async (req: Request, res: Response) => {
   try {
     const { usuarioId, items } = req.body; 
-    // items espera ser un array así: [{ productoId: 1, cantidad: 2, precio: 4.50 }]
+    // items espera ser un array así: [{ productoId: 1, cantidad: 2 }]
     
     if (!items || !Array.isArray(items)) {
       res.status(400).json({ error: 'El campo "items" es requerido y debe ser un array' });
       return;
     }
 
-    // 1. Calculamos el total sumando los subtotales
-    const totalCalculado = items.reduce((acc: number, item: any) => {
-      return acc + (Number(item.precio) * Number(item.cantidad));
-    }, 0);
+    // 1. Buscamos los productos en la BBDD para obtener los precios reales
+    const productosIds = items.map((item: any) => Number(item.productoId));
+    const productosDb = await prisma.producto.findMany({
+      where: { id: { in: productosIds } }
+    });
 
-    // 2. Insertamos TODO en una sola transacción (Cabecera + Detalles)
+    // 2. Calculamos el total y preparamos los detalles
+    let totalCalculado = 0;
+    const detallesData = [];
+
+    for (const item of items) {
+      const producto = productosDb.find(p => p.id === Number(item.productoId));
+      if (!producto) {
+        res.status(400).json({ error: `Producto con ID ${item.productoId} no encontrado` });
+        return;
+      }
+      
+      const precioReal = Number(producto.precio);
+      const cantidad = Number(item.cantidad);
+      totalCalculado += precioReal * cantidad;
+
+      detallesData.push({
+        productoId: producto.id,
+        cantidad: cantidad,
+        precioUnitario: precioReal
+      });
+    }
+
+    // 3. Insertamos TODO en una sola transacción (Cabecera + Detalles)
     const nuevoPedido = await prisma.pedido.create({
       data: {
         usuarioId: Number(usuarioId), // Aseguramos que sea número
         total: totalCalculado,
-        estado: 'PENDIENTE',
         // ¡Aquí está la magia de Prisma! Creamos los renglones al mismo tiempo
         detalles: {
-          create: items.map((item: any) => ({
-            productoId: Number(item.productoId),
-            cantidad: Number(item.cantidad),
-            precioUnitario: Number(item.precio)
-          }))
+          create: detallesData
         }
       },
       include: {
@@ -62,28 +80,5 @@ export const getPedidos = async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: 'Error al obtener pedidos', details: error.message });
-  }
-};
-
-// ... (tus imports y funciones anteriores)
-
-// Función para que el Barista cambie el estado (ej: de PENDIENTE a LISTO)
-export const updateEstadoPedido = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;   // El ID viene en la URL (ej: /api/pedidos/5)
-    const { estado } = req.body; // El nuevo estado viene en el body
-
-    const pedidoActualizado = await prisma.pedido.update({
-      where: {
-        id: Number(id) // Convertimos el texto de la URL a número
-      },
-      data: {
-        estado: estado // Actualizamos solo el campo estado
-      }
-    });
-
-    res.json(pedidoActualizado);
-  } catch (error) {
-    res.status(400).json({ error: 'No se pudo actualizar el pedido' });
   }
 };

@@ -7,8 +7,7 @@ Content-Type: application/json
   "items": [
     {
       "productoId": 3,
-      "cantidad": 2,
-      "precio": 3.50
+      "cantidad": 1
     }
   ]
 }
@@ -19,3 +18,30 @@ GET http://localhost:3000/api/pedidos
 
 ### 3. Elimina el producto con id especifico
 DELETE http://localhost:3000/api/productos/46
+
+### 4. Crear Usuario CLIENTE (Sin código)
+POST http://localhost:3000/api/usuarios
+Content-Type: application/json
+
+{
+  "nombreCompleto": "Juan Cliente",
+  "email": "juan@example.com",
+  "password": "123",
+  "rol": "CLIENTE"
+}
+
+### 5. Ver usuarios
+GET http://localhost:3000/api/usuarios/users
+
+
+### 6. Crear Usuario TUTOR (Con código obligatorio)
+POST http://localhost:3000/api/usuarios
+Content-Type: application/json
+
+{
+  "nombreCompleto": "Profe Garcia",
+  "email": "profe@example.com",
+  "password": "123",
+  "rol": "TUTOR",
+  "codigoTutor": "PROF-2024"
+}

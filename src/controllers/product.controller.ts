@@ -6,7 +6,7 @@ export const getProductos = async (req: Request, res: Response) => {
   try {
     const productos = await prisma.producto.findMany({
       include: {
-        categoria: true // ¡Truco! Esto trae también el nombre de la categoría
+        categoria: true // Debe coincidir con el nombre en schema.prisma (plural)
       }
     });
     
@@ -21,12 +21,13 @@ export const getProductos = async (req: Request, res: Response) => {
 export const createProducto = async (req: Request, res: Response) => {
   try {
     // Extraemos los datos del cuerpo de la petición (body)
-    const { nombre, precio, stock, categoriaId } = req.body;
+    const { nombre, precio, categoriaId, alergenos } = req.body;
 
     const nuevoProducto = await prisma.producto.create({
       data: {
         nombre,
         precio,
+        alergenos,
         categoriaId: Number(categoriaId) // Aseguramos que sea número
       }
     });
