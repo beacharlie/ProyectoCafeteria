@@ -24,9 +24,9 @@ POST http://localhost:3000/api/usuarios
 Content-Type: application/json
 
 {
-  "nombreCompleto": "Juan Cliente",
-  "email": "juan@example.com",
-  "password": "123",
+  "nombreCompleto": "Pedro Cliente",
+  "email": "pedro@example.com",
+  "password": "12345",
   "rol": "CLIENTE"
 }
 
@@ -44,4 +44,13 @@ Content-Type: application/json
   "password": "123",
   "rol": "TUTOR",
   "codigoTutor": "PROF-2024"
+}
+
+### 7. Login de usuario
+POST http://localhost:3000/api/usuarios/login
+Content-Type: application/json
+
+{
+  "email": "pedro@example.com",
+  "password": "12345"
 }

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../lib/prisma';
+import bcrypt from 'bcryptjs';
 
 export const createUsuario = async (req: Request, res: Response) => {
   try {
@@ -7,8 +8,8 @@ export const createUsuario = async (req: Request, res: Response) => {
 
     // VALIDACIÓN: Si es tutor, exigimos el código
     if (rol === 'TUTOR' && !codigoTutor) {
-      res.status(400).json({ 
-        error: 'El código de tutor es obligatorio para el rol TUTOR.' 
+      res.status(400).json({
+        error: 'El código de tutor es obligatorio para el rol TUTOR.'
       });
       return;
     }
@@ -16,11 +17,13 @@ export const createUsuario = async (req: Request, res: Response) => {
     // Si no es tutor, nos aseguramos de que no se guarde basura (opcional, pero limpio)
     const codigoFinal = rol === 'TUTOR' ? codigoTutor : null;
 
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const nuevoUsuario = await prisma.usuario.create({
       data: {
         nombreCompleto,
         email,
-        password, // Nota: En una app real, aquí deberías hashear la contraseña (ej: bcrypt)
+        password: hashedPassword,
         rol: rol || 'CLIENTE',
         codigoTutor: codigoFinal
       }
@@ -43,5 +46,25 @@ export const getUsuarios = async (req: Request, res: Response) => {
     res.json(usuarios);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+};
+
+export const login = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    const usuario = await prisma.usuario.findUnique({ where: { email } });
+    if (usuario) {
+      const passwordMatch = await bcrypt.compare(password, usuario.password);
+      if (passwordMatch) {
+        res.status(200).send('Bienvenido');
+      } else {
+        res.status(401).json({ error: 'Credenciales inválidas' })
+      }
+    } else {
+      res.status(401).json({ error: 'Credenciales inválidas' });
+      return;
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 };
