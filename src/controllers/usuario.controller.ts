@@ -4,38 +4,58 @@ import bcrypt from 'bcryptjs';
 
 export const createUsuario = async (req: Request, res: Response) => {
   try {
-    const { nombreCompleto, email, password, rol, codigoTutor } = req.body;
+    const {
+      nombreCompleto,
+      email,
+      password,
+      codigoTutor,
+      alergenos,
+      horario // 1. Extraemos horario (es obligatorio en tu DB)
+    } = req.body;
 
-    // VALIDACIÓN: Si es tutor, exigimos el código
-    if (rol === 'TUTOR' && !codigoTutor) {
-      res.status(400).json({
-        error: 'El código de tutor es obligatorio para el rol TUTOR.'
-      });
+    const rol = req.body.rol ? String(req.body.rol).trim().toUpperCase() : 'CLIENTE';
+
+    // Validación básica ampliada
+    if (!email || !password || !nombreCompleto || !horario) {
+      res.status(400).json({ error: 'Faltan campos obligatorios (nombre, email, password, horario).' });
       return;
     }
 
-    // Si no es tutor, nos aseguramos de que no se guarde basura (opcional, pero limpio)
-    const codigoFinal = rol === 'TUTOR' ? codigoTutor : null;
+    if (rol === 'TUTOR') {
+      const codigoMaestro = process.env.TUTOR_SECRET_CODE || 'CODIGO_TUTOR_TEST';
+      if (codigoTutor !== codigoMaestro) {
+        res.status(403).json({ error: 'Código de tutor inválido.' });
+        return;
+      }
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    const alergenosString = Array.isArray(alergenos)
+      ? alergenos.join(', ').substring(0, 100)
+      : (alergenos || "");
 
     const nuevoUsuario = await prisma.usuario.create({
       data: {
         nombreCompleto,
         email,
         password: hashedPassword,
-        rol: rol || 'CLIENTE',
-        codigoTutor: codigoFinal
+        rol: rol,
+        codigoTutor: rol === 'TUTOR' ? codigoTutor : null,
+        horario: horario,
+        alergenos: alergenosString
       }
     });
 
-    res.status(201).json(nuevoUsuario);
+    const { password: _, ...usuarioSinPassword } = nuevoUsuario;
+    return res.status(201).json(usuarioSinPassword);
+
   } catch (error: any) {
-    console.error(error);
+    console.error("Error detallado:", error);
     if (error.code === 'P2002') {
-      res.status(400).json({ error: 'El email ya está registrado' });
+    return  res.status(400).json({ error: 'El email ya está registrado.' });
     } else {
-      res.status(500).json({ error: 'Error al crear usuario', details: error.message });
+    return  res.status(500).json({ error: 'Error al crear usuario', details: error.message });
     }
   }
 };

@@ -10,10 +10,12 @@ datasource db {
 model Usuario {
   id             Int      @id @default(autoincrement())
   nombreCompleto String   @map("nombre_completo") @db.VarChar(255)
-  email          String   @unique(map: "idx_email")
+  email          String   @unique(map: "idx_email") @db.VarChar(191)
   password       String   @db.VarChar(255)
   rol            String   @default("CLIENTE") @db.VarChar(50)
   codigoTutor    String?  @map("codigo_tutor") @db.VarChar(50)
+  horario        String   @db.VarChar(45)
+  alergenos      String?  @db.VarChar(100)
   pedidos        Pedido[]
 
   @@map("usuarios")
